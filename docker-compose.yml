@@ -1,0 +1,54 @@
+# Ventorystack: Docker Compose
+# https://docs.docker.com/compose/
+#
+# Usage: docker-compose up
+version: '3'
+services:
+
+  # PostgreSQL database
+  db:
+    restart: always
+    image: dgnest/postgres:9.6
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=golang
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - pgvolume-coursego-9.6:/var/lib/postgresql/data #using the declared volume
+
+  # Django web server
+  web:
+    hostname: web
+    ports:
+      - "80:8080"
+      - "8080:5000"
+    restart: always
+    image: golang:1.8.0
+    environment: &environment
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_SESSION_URL=redis://redis:6379/1
+      - DB_URL=postgres://postgres:postgres@db:5432/golang
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    volumes:
+      - .:/go/src/course-go
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  redis:
+    restart: always
+    image: redis:3.2.4
+    environment: *environment
+    env_file: .env
+
+volumes:
+  pgvolume-coursego-9.6:
+    external:
+      name: golang-pgvolume-9-6
