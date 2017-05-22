@@ -9,5 +9,7 @@ COPY ./glide.lock /go/src/course-go/
 WORKDIR /go/src/course-go/
 
 # install golang dependencies
-RUN curl https://glide.sh/get | sh \
+RUN apt-get update \
+  && apt-get install -y zsh \
+  && curl https://glide.sh/get | sh \
   && glide install
